@@ -12,13 +12,18 @@ class IxDict:
         self.ent_to_ix = dict(zip(self.entities, range(len(self.entities))))
         self.ix_to_ent = {v: k for k, v in self.ent_to_ix.items()}
 
-    def __call__(self, item):
-        if isinstance(str, item):
-            return self.ent_to_ix[item]
-        elif isinstance(int, item):
-            return self.ix_to_ent[item]
-        else:
-            raise ValueError(type(item))
+    def __getitem__(self, item):
+        try:
+            if isinstance(item, str):
+                return self.ent_to_ix[item]
+            elif isinstance(item, int):
+                return self.ix_to_ent[item]
+            else:
+                raise ValueError(type(item))
+        except Exception as e:
+            print(item)
+            print(type(item))
+            raise e
 
     def __len__(self):
         return len(self.entities)

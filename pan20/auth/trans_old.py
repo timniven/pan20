@@ -1,8 +1,17 @@
-"""RoBERTa model.
+"""Transformer model(s).
+
+Issues:
+- Sentence tokenization difficult on some texts (nltk and spacy).
+- Long documents (6,000 tokens).
+Solution:
+- Take the first k tokens of each document. Should be enough to get the style.
+  Can also vary k and compare performance. Start with k=200.
 
 Choice of RoBERTa motivated by its high performance, and because of many studies
 of BERT that yield insight into its behaviour, which we can make use of here to
 try and interpret what the model has learned.
+
+Get started on DistilRoBERTa, though.
 """
 import torch.nn.functional as F
 from torch import nn
@@ -12,7 +21,10 @@ import transformers as tf
 
 n_layers = {
     'roberta-base': 12,
+    'distilroberta-base': 6,
 }
+hidden = 768  # number of units in hidden layers, same for all models
+
 
 
 class RoBERTaSentEnc(nn.Module):
@@ -28,7 +40,7 @@ class RoBERTaSentEnc(nn.Module):
         """Encode sentences.
 
         Args:
-          sents: Tensor of shape [batch, max_sent_len, hidden].
+          sents: Tensor of shape [batch, max_sent_len].
           lens: Tensor of shape [batch, 1].
 
         Returns:
@@ -120,44 +132,26 @@ class DocEnc(nn.Module):
         return sents.sum(dim=1)
 
 
-class Classify(nn.Module):
+class DistilRoBERTaFirstKMeanStdMax(nn.Module):
 
-    def __init__(self, n_feats):
+    def __init__(self, k=300):
         super().__init__()
-        self.classify = nn.Linear(n_feats * 2, 2)
-
-    def forward(self, docs0, docs1):
-        in_features = torch.cat([docs0, docs1], dim=1)
-        return self.classify(in_features)
 
 
-class RoBERTaModel1(nn.Module):
-    """First pass at a RoBERTa based model.
 
-    - Sents are split and encoded by RoBERTa, and for each:
-      * For each layer, take the mean of the output vectors.
-      * Reduce those to a single vector via weighted sum.
-    - Final representation is a BiLSTM over the sentence vectors.
-    - Representations of each are then compared with a linear layer.
-      * A learned vector for each fandom conditions this final layer.
+
+
+
+
+
+class DistilRoBERTaBasic(ComparisonModel):
+    """"Basic DistilRoBERTa model.
+
+    doc_enc: DistilRoBERTaFirstKMeanStdMax.
+    classify: linear layer.
     """
 
-    def __init__(self, model_name, dim_fandom_emb, n_feats):
-        super().__init__()
-        self.doc_enc = DocEnc(model_name, n_feats, dim_fandom_emb)
-        self.classify = Classify(n_feats)
-
-    def forward(self, sents0, sents1, lens0, lens1, fandom0, fandom1):
-        # NOTE: here would be where to lookup fandom embeds
-
-        # [batch, n_feats]
-        docs0 = self.doc_enc(sents0, lens0, fandom0)
-        docs1 = self.doc_enc(sents1, lens1, fandom1)
-
-        # classification layer
-        logits = self.classify(docs0, docs1)
-
-        # need to softmax for skorch
-        probs = F.softmax(logits, dim=1)
-
-        return probs
+    def __init__(self, k=300, n_feats=hidden*3):
+        doc_enc = DistilRoBERTaFirstKMeanStdMax()
+        classify = LinearClassify(n_feats)
+        super().__init__(doc_enc, classify)

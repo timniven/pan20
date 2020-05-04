@@ -1,4 +1,7 @@
 import json
+import os
+
+from tqdm.notebook import tqdm
 
 from pan20 import util
 
@@ -9,8 +12,36 @@ from pan20 import util
 n_fandoms = 1600
 
 
+def get_auth_dict():
+    path = 'data/auth/auth_ix_dict'
+    if not os.path.exists(path):
+        authors = set([])
+        _, truth = load_small()
+        with tqdm(total=len(truth)) as pbar:
+            for y in truth:
+                authors.update(y['authors'])
+                pbar.update()
+        ix_dict = util.IxDict(authors)
+        ix_dict.save(path)
+        return ix_dict
+    else:
+        return util.IxDict.load(path)
+
+
 def get_fandom_dict():
-    return util.IxDict.load('data/auth/fd_ix_dict')
+    path = 'data/auth/fd_ix_dict'
+    if not os.path.exists(path):
+        fandoms = set([])
+        X, _ = load_small()
+        with tqdm(total=len(X)) as pbar:
+            for x in X:
+                fandoms.update(x['fandoms'])
+                pbar.update()
+        ix_dict = util.IxDict(fandoms)
+        ix_dict.save(path)
+        return ix_dict
+    else:
+        return util.IxDict.load(path)
 
 
 def load_small():
