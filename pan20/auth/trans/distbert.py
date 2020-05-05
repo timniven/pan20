@@ -6,6 +6,14 @@ from pan20.auth.trans import base
 from pan20.auth import pytorch
 
 
+class CollateFirstK(pytorch.CollateFirstK):
+
+    def __init__(self, k=300):
+        tokenizer = transformers.DistilBertTokenizer \
+            .from_pretrained('distilbert-base-cased')
+        super().__init__(tokenizer=tokenizer, k=k)
+
+
 class DistilBERT(base.TransformerModel):
 
     def __init__(self):
@@ -39,47 +47,51 @@ class FrozenDistilBERT(DistilBERT):
 
 class DistilBERTComparison1(base.ComparisonModel):
 
-    def __init__(self, p_drop):
+    def __init__(self, p_drop, weight_decay):
         transformer = DistilBERT()
         extract_feats = base.MeanStdMax()
         combine_layers = base.WeightedSum(n_layers=6)
         doc_enc = base.SeqEnc(transformer, extract_feats, combine_layers)
         classify = base.LinearClassify(
             n_feats=extract_feats.n_feats, p_drop=p_drop)
-        super().__init__(doc_enc=doc_enc, classify=classify)
+        super().__init__(
+            doc_enc=doc_enc, classify=classify, weight_decay=weight_decay)
 
 
 class FrozenDistilBERTComparison1(base.ComparisonModel):
 
-    def __init__(self, p_drop):
+    def __init__(self, p_drop, weight_decay):
         transformer = FrozenDistilBERT()
         extract_feats = base.MeanStdMax()
         combine_layers = base.WeightedSum(n_layers=6)
         doc_enc = base.SeqEnc(transformer, extract_feats, combine_layers)
         classify = base.LinearClassify(
             n_feats=extract_feats.n_feats, p_drop=p_drop)
-        super().__init__(doc_enc=doc_enc, classify=classify)
+        super().__init__(
+            doc_enc=doc_enc, classify=classify, weight_decay=weight_decay)
 
     def optim_params(self):
         prefix = 'doc_enc.transformer.model.transformer.'
         params = [p for n, p in self.named_parameters()
                   if not n.startswith(prefix)]
         return params
-        # TODO: deal with this
-        # no_decay = ['bias', 'gamma', 'beta']
-        # optimizer_grouped_parameters = [
-        #     {'params': [p for n, p in param_optimizer
-        #                 if not any(nd in n for nd in no_decay)],
-        #      'weight_decay_rate': config.weight_decay},
-        #     {'params': [p for n, p in param_optimizer
-        #                 if any(nd in n for nd in no_decay)],
-        #      'weight_decay_rate': 0.0}
-        # ]
 
 
-class CollateFirstK(pytorch.CollateFirstK):
+class DistilBERTComparisonAdvFd1(base.AdversarialFdComparisonModel):
 
-    def __init__(self, k=300):
-        tokenizer = transformers.DistilBertTokenizer \
-            .from_pretrained('distilbert-base-cased')
-        super().__init__(tokenizer=tokenizer, k=k)
+    def __init__(self, p_drop, weight_decay, lambda_fd, lambda_grad):
+        transformer = FrozenDistilBERT()
+        extract_feats = base.MeanStdMax()
+        combine_layers = base.WeightedSum(n_layers=6)
+        doc_enc = base.SeqEnc(transformer, extract_feats, combine_layers)
+        classify = base.MouClassify(
+            n_feats=extract_feats.n_feats, p_drop=p_drop)
+        classify_fd = base.FandomClassify(
+            n_feats=extract_feats.n_feats, p_drop=p_drop)
+        super().__init__(
+            doc_enc=doc_enc,
+            classify_match=classify,
+            classify_fandom=classify_fd,
+            weight_decay=weight_decay,
+            lambda_fd=lambda_fd,
+            lambda_grad=lambda_grad)

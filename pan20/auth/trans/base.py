@@ -1,7 +1,9 @@
 """Base classes for Transformer models."""
-from torch.nn import functional as F
 from torch import nn
 import torch
+
+from pan20 import auth
+from pan20.util.pytorch import layers
 
 
 hidden = 768  # standard hidden unit size for all models
@@ -160,18 +162,32 @@ class LinearClassify(Classify):
         self.dropout = nn.Dropout(p=p_drop)
 
     def forward(self, docs0, docs1):
-        in_features = torch.cat([docs0, docs1], dim=1)
-        in_features = self.dropout(in_features)
-        return self.classify(in_features)
+        feats = torch.cat([docs0, docs1], dim=1)
+        feats = self.dropout(feats)
+        return self.classify(feats)
+
+
+class MouClassify(Classify):
+
+    def __init__(self, n_feats, p_drop):
+        super().__init__()
+        self.classify = nn.Linear(n_feats * 4, 2)
+        self.dropout = nn.Dropout(p=p_drop)
+
+    def forward(self, docs0, docs1):
+        feats = torch.cat([docs0, docs1, docs0 * docs1, docs0 - docs1], dim=1)
+        feats = self.dropout(feats)
+        return self.classify(feats)
 
 
 class ComparisonModel(nn.Module):
     """Comparison of reps of each document via classification layer."""
 
-    def __init__(self, doc_enc, classify):
+    def __init__(self, doc_enc, classify, weight_decay):
         super().__init__()
         self.doc_enc = doc_enc
         self.classify = classify
+        self.weight_decay = weight_decay
         self.loss = nn.CrossEntropyLoss()
 
     def forward(self, seqs0, seqs1, fandoms0, fandoms1, authors0, authors1,
@@ -189,4 +205,66 @@ class ComparisonModel(nn.Module):
         return loss, logits
 
     def optim_params(self):
-        return self.parameters()
+        no_decay = ['bias', 'gamma', 'beta']
+        parameters = [
+            {'params': [p for n, p in self.named_parameters()
+                        if not any(nd in n for nd in no_decay)],
+             'weight_decay_rate': self.weight_decay},
+            {'params': [p for n, p in self.named_parameters()
+                        if any(nd in n for nd in no_decay)],
+             'weight_decay_rate': 0.0}
+        ]
+        return parameters
+
+
+class FandomClassify(nn.Module):
+    # TODO: the classify class patterns are rubbish.
+
+    def __init__(self, n_feats, p_drop):
+        super().__init__()
+        self.linear = nn.Linear(n_feats, auth.n_fandoms)
+        self.dropout = nn.Dropout(p=p_drop)
+
+    def forward(self, feats):
+        feats = self.dropout(feats)
+        return self.linear(feats)
+
+
+class AdversarialFdComparisonModel(ComparisonModel):
+    """Uses adversarial loss to discourage feats useful to classify fandom."""
+
+    def __init__(self, doc_enc, classify_match, classify_fandom, weight_decay,
+                 lambda_fd, lambda_grad):
+        super().__init__(doc_enc, classify_match, weight_decay)
+        self.doc_enc = doc_enc
+        self.grad_rev = layers.GradientReversal(lambda_grad)
+        self.classify_fandom = classify_fandom
+        self.weight_decay = weight_decay
+        self.loss = nn.CrossEntropyLoss()
+        self.lambda_fd = lambda_fd
+
+    def forward(self, seqs0, seqs1, fandoms0, fandoms1, authors0, authors1,
+                labels):
+        # [batch, n_feats]
+        docs0 = self.doc_enc(seqs0, fandoms0)
+        docs1 = self.doc_enc(seqs1, fandoms1)
+
+        # combine docs and fandoms into a single tensor for prediction
+        docs = torch.cat([docs0, docs1], dim=0)
+        fandoms = torch.cat([fandoms0, fandoms1], dim=0).squeeze()
+
+        # gradient reversal layer for fandom predictions
+        docs = self.grad_rev(docs)
+
+        # classification layer
+        logits_match = self.classify(docs0, docs1)
+        logits_fandom = self.classify_fandom(docs)
+
+        # calculate loss
+        loss_match = self.loss(logits_match, labels)
+        loss_fandom = self.loss(logits_fandom, fandoms)
+
+        # combine losses
+        loss = loss_match + self.lambda_fd * loss_fandom
+
+        return loss, logits_match
