@@ -4,6 +4,7 @@ from xml.etree import ElementTree as ET
 import pandas as pd
 
 
+# NOTE: use this one
 def load():  # author, tweet, label
     data = load_data()
     truth = {x['author']: x['label'] for x in load_truth()}

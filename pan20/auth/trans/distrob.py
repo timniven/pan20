@@ -6,10 +6,20 @@ from pan20.auth.trans import base
 from pan20.auth import pytorch
 
 
+class CollateFirstK(pytorch.CollateFirstK):
+
+    def __init__(self, k=300):
+        tokenizer = transformers.RobertaTokenizer \
+            .from_pretrained('distilroberta-base')
+        super().__init__(tokenizer=tokenizer, k=k)
+
+
 class DistilRoBERTa(base.TransformerModel):
 
     def __init__(self):
-        config = transformers.RobertaConfig(output_hidden_states=True)
+        config = transformers.RobertaConfig \
+            .from_pretrained('distilroberta-base')
+        config.output_hidden_states = True
         model = transformers.RobertaModel.from_pretrained(
             'distilroberta-base', config=config)
         super().__init__(model=model)
@@ -32,11 +42,3 @@ class DistilRoBERTaComparison1(base.ComparisonModel):
         doc_enc = base.SeqEnc(transformer, extract_feats, combine_layers)
         classify = base.LinearClassify(n_feats=extract_feats.n_feats)
         super().__init__(doc_enc=doc_enc, classify=classify)
-
-
-class CollateFirstK(pytorch.CollateFirstK):
-
-    def __init__(self, k=300):
-        tokenizer = transformers.RobertaTokenizer\
-            .from_pretrained('distilroberta-base')
-        super().__init__(tokenizer=tokenizer, k=k)

@@ -131,3 +131,26 @@ class CollateFirstK(Collate):
         doc = self.tokenizer.encode(
             doc, max_length=self.k, pad_to_max_length=True)
         return torch.LongTensor(doc).unsqueeze(0)
+
+
+def dataloaders_small(collate, train_batch_size, tune_batch_size):
+    X_train, y_train, X_dev, y_dev, X_test, y_test = auth.small()
+    train = Dataset(X_train, y_train)
+    dev = Dataset(X_dev, y_dev)
+    test = Dataset(X_test, y_test)
+    train_loader = data.DataLoader(
+        batch_size=train_batch_size,
+        collate_fn=collate,
+        dataset=train,
+        shuffle=True)
+    dev_loader = data.DataLoader(
+        batch_size=tune_batch_size,
+        collate_fn=collate,
+        dataset=dev,
+        shuffle=False)
+    test_loader = data.DataLoader(
+        batch_size=tune_batch_size,
+        collate_fn=collate,
+        dataset=test,
+        shuffle=False)
+    return train_loader, dev_loader, test_loader

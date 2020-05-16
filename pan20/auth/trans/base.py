@@ -180,7 +180,26 @@ class MouClassify(Classify):
         return self.classify(feats)
 
 
-class ComparisonModel(nn.Module):
+class BaseModel(nn.Module):
+
+    def optim_params(self):
+        no_decay = ['bias', 'gamma', 'beta']
+        parameters = [
+            {'params': [p for n, p in self.named_parameters()
+                        if not any(nd in n for nd in no_decay)],
+             'weight_decay_rate': self.weight_decay},
+            {'params': [p for n, p in self.named_parameters()
+                        if any(nd in n for nd in no_decay)],
+             'weight_decay_rate': 0.0}
+        ]
+        return parameters
+
+
+class BaseFrozenModel(nn.Module):
+    raise NotImplementedError
+
+
+class ComparisonModel(BaseModel):
     """Comparison of reps of each document via classification layer."""
 
     def __init__(self, doc_enc, classify, weight_decay):
@@ -203,18 +222,6 @@ class ComparisonModel(nn.Module):
         loss = self.loss(logits, labels)
 
         return loss, logits
-
-    def optim_params(self):
-        no_decay = ['bias', 'gamma', 'beta']
-        parameters = [
-            {'params': [p for n, p in self.named_parameters()
-                        if not any(nd in n for nd in no_decay)],
-             'weight_decay_rate': self.weight_decay},
-            {'params': [p for n, p in self.named_parameters()
-                        if any(nd in n for nd in no_decay)],
-             'weight_decay_rate': 0.0}
-        ]
-        return parameters
 
 
 class FandomClassify(nn.Module):

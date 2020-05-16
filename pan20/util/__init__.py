@@ -1,8 +1,12 @@
 """General utilities."""
 import json
+import random
 
-# import nltk
-# from gensim.parsing import preprocessing
+import numpy as np
+import torch
+
+import nltk
+from gensim.parsing import preprocessing
 
 
 class IxDict:
@@ -57,9 +61,23 @@ def is_user_retweet(tweet):
     return '#USER#' in tweet
 
 
-# def tokenize(tweet, stem=False):
-#     tweet = tweet.lower()
-#     tweet = preprocessing.strip_punctuation(tweet)
-#     if stem:
-#         tweet = preprocessing.stem_text(tweet)
-#     return nltk.word_tokenize(tweet)
+def new_random_seed():
+    return random.choice(range(10000))
+
+
+def set_random_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all()
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def tokenize(tweet, stem=False):
+    tweet = tweet.lower()
+    tweet = preprocessing.strip_punctuation(tweet)
+    if stem:
+        tweet = preprocessing.stem_text(tweet)
+    return nltk.word_tokenize(tweet)

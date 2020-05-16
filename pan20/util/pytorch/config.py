@@ -102,14 +102,16 @@ class Config:
 class ExperimentConfig(Config):
     """Config for an experiment."""
 
-    def __init__(self, experiment_name, ckpt_dir, results_dir, train, anneal,
-                 optim, stop, **kwargs):
+    def __init__(self, experiment_name, ckpt_dir, results_dir, model, train,
+                 anneal, optim, stop, n_runs=20, **kwargs):
         """Create a new Config class.
 
         Args:
           experiment_name: String.
           ckpt_dir: String, where to save checkpoints and experiment data.
           results_dir: String, where to save experiment results.
+          n_runs: Integer, number of training runs. Defaults to 20.
+          model: Config object for model specific settings.
           train: Config object for general training settings.
           anneal: Config object for annealing config settings.
           optim: Config object for optimizer config settings.
@@ -120,6 +122,8 @@ class ExperimentConfig(Config):
         self.experiment_name = experiment_name
         self.ckpt_dir = ckpt_dir
         self.results_dir = results_dir
+        self.n_runs = n_runs
+        self.model = model
         self.train = train
         self.anneal = anneal
         self.optim = optim

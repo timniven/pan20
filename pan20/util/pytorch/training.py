@@ -13,8 +13,8 @@ from . import anneal, metrics, opt, stopping
 class TrainConfig(config.Config):
     """Config class for common training settings."""
 
-    def __init__(self, n_epochs, seed, train_batch_size, run_no, p_drop,
-                 tune_batch_size, dev_metric, memory_limit=None, no_cuda=False,
+    def __init__(self, n_epochs, seed, train_batch_size, p_drop, metric,
+                 tune_batch_size, run_no=1, memory_limit=None, no_cuda=False,
                  **kwargs):
         super().__init__(**kwargs)
         # NOTE: this is a target, but account for memory limit, so use property
@@ -25,7 +25,7 @@ class TrainConfig(config.Config):
         self.run_no = run_no
         self.n_epochs = n_epochs
         self._tune_batch_size = tune_batch_size
-        self.dev_metric = dev_metric
+        self.metric = metric
         self._memory_limit = memory_limit
 
     @property
@@ -117,7 +117,7 @@ class TrainableModel:
     def __init__(self, model, cfg):
         self.model = model
         self.cfg = cfg
-        self.metric = metrics.get(cfg.train.dev_metric)
+        self.metric = metrics.get(cfg.train.metric)
         self.train_state = TrainState()
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.saver = Saver(ckpt_dir=self.cfg.ckpt_dir)

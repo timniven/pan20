@@ -1,6 +1,9 @@
 """Bill Noble's function word list."""
 from pan20 import util
 
+import numpy as np
+from nltk import tokenize
+
 
 cats = [
     'adverbs',
@@ -46,3 +49,25 @@ class NobleDict:
 
     def words_in(self, cat):
         return self.cat_dict[cat]
+
+
+class CatFreqs:
+
+    def __init__(self, tokenize_fn=tokenize.word_tokenize):
+        self.tokenize = tokenize_fn
+        self.noble_dict = NobleDict()
+
+    def __call__(self, doc):
+        words = self.tokenize(doc)
+        n = len(words)
+        freqs = {cat: 0 for cat in cats}
+        for word in words:
+            for cat in self.noble_dict.cats_for(word):
+                freqs[cat] += 1
+        freqs['n'] = n
+        freqs['function_words'] = 0
+        for cat in cats:
+            freqs['function_words'] += freqs[cat]
+            freqs[cat] /= n
+        freqs['function_words'] /= n
+        return freqs
