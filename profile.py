@@ -1,7 +1,7 @@
 """Script to run spreaders of fake news profiling."""
 import argparse
 
-from pan20.fake import feats, inputs, models, outputs
+from pan20.fake import features, inputs, models, outputs
 
 
 if __name__ == '__main__':
@@ -10,10 +10,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     data = inputs.parse(args.file_path)
-    data = feats.early_bird(data)
+    feats = features.early_bird(data)
 
-    model = models.EarlyBird()
-    preds = model.pred(data)  # list of 0, 1 as long as len(data)
+    model = models.early_bird()
+    preds = model.predict(feats.values)  # list of 0, 1 as long as len(data)
     preds = [{'author': data.iloc[i].author, 'pred': preds[i]}
              for i in range(len(data))]
 

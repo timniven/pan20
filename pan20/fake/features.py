@@ -1,7 +1,6 @@
 """Custom features."""
 import pandas as pd
 from nltk import tokenize
-from tqdm.notebook import tqdm
 
 from pan20.util import ctree, noble, sentiwordnet
 
@@ -17,15 +16,15 @@ def early_bird(data):
     data['function_words'] = [f['function_words'] for f in freqs]
 
     # constituency tree features
-    get_tree = ctree.GetTree()
-    trees = []
-    with tqdm(total=len(data)) as pbar:
-        for _, x in data.iterrows():
-            trees.append(get_tree(x.tweet))
-            pbar.update()
-    data['avg_bf'] = [ctree.avg_branch_factor(t) for t in trees]
-    data['max_np_height'] = [ctree.max_const_height(t, 'NP') for t in trees]
-    data['max_vp_height'] = [ctree.max_const_height(t, 'VP') for t in trees]
+    # get_tree = ctree.GetTree()
+    # trees = []
+    # with tqdm(total=len(data)) as pbar:
+    #     for _, x in data.iterrows():
+    #         trees.append(get_tree(x.tweet))
+    #         pbar.update()
+    # data['avg_bf'] = [ctree.avg_branch_factor(t) for t in trees]
+    # data['max_np_height'] = [ctree.max_const_height(t, 'NP') for t in trees]
+    # data['max_vp_height'] = [ctree.max_const_height(t, 'VP') for t in trees]
 
     # sentiment features
     swn = sentiwordnet.SentiWordNet()
@@ -35,15 +34,15 @@ def early_bird(data):
     data['senti_pos'] = data.toks.apply(swn.score_pos)
 
     # normalization
-    data['avg_bf'] = normalize(data, 'avg_bf')
-    data['max_np_height'] = normalize(data, 'max_np_height')
-    data['max_vp_height'] = normalize(data, 'max_vp_height')
+    # data['avg_bf'] = normalize(data, 'avg_bf')
+    # data['max_np_height'] = normalize(data, 'max_np_height')
+    # data['max_vp_height'] = normalize(data, 'max_vp_height')
     data['senti'] = normalize(data, 'senti')
     data['senti_neg'] = normalize(data, 'senti_neg')
     data['senti_pos'] = normalize(data, 'senti_pos')
 
     # drop intermediate cols
-    data = data.drop(columns=['tweet', 'toks'])
+    data = data.drop(columns=['author', 'tweet', 'toks'])
 
     return data
 
