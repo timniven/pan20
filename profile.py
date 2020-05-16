@@ -7,6 +7,7 @@ from pan20.fake import features, inputs, models, outputs
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('file_path', type=str)
+    parser.add_argument('output_dir', type=str)
     args = parser.parse_args()
 
     data = inputs.parse(args.file_path)
@@ -17,4 +18,4 @@ if __name__ == '__main__':
     preds = [{'author': data.iloc[i].author, 'pred': preds[i]}
              for i in range(len(data))]
 
-    outputs.save(preds)
+    outputs.save(preds, args.output_dir)

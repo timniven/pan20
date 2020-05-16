@@ -2,11 +2,11 @@
 import os
 
 
-def save(preds):
+def save(preds, output_dir):
     # preds are dicts like {author, pred}
-    folder = 'preds/en'
-    if not os.path.exists('preds'):
-        os.mkdir('preds')
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    folder = os.path.join(output_dir, 'en')
     if not os.path.exists(folder):
         os.mkdir(folder)
     for pred in preds:
