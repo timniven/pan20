@@ -2,6 +2,7 @@
 data/
 ckpts/
 tmp/
+pan20env/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

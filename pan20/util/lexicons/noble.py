@@ -39,6 +39,10 @@ class NobleDict:
     def __contains__(self, word):
         return word in self.word_dict
 
+    @property
+    def categories(self):
+        return list(sorted(self.cat_dict.keys()))
+
     def cats_for(self, word):
         if word in self.word_dict:
             return self.word_dict[word]

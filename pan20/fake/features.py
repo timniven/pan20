@@ -2,7 +2,8 @@
 import pandas as pd
 from nltk import tokenize
 
-from pan20.util import ctree, noble, sentiwordnet
+from pan20.util.lexicons import noble, sentiwordnet
+from pan20.util import ctree
 
 
 def early_bird(data):
