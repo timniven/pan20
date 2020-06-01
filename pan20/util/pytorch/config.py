@@ -1,11 +1,12 @@
 """Common utilities for PyTorch."""
+import collections
 import inspect
 import json
 
 import numpy as np
 
 
-class Config:
+class Config(collections.Mapping):
     """Base config class."""
 
     def __init__(self, **kwargs):
@@ -14,6 +15,15 @@ class Config:
                 setattr(self, key, Config(**val))
             else:
                 setattr(self, key, val)
+
+    def __getitem__(self, key):
+        return self.to_dict()[key]
+
+    def __iter__(self):
+        return iter(self.to_dict())
+
+    def __len__(self):
+        return len(self.to_dict())
 
     def __repr__(self):
         cfg = self.to_dict()
@@ -53,7 +63,7 @@ class Config:
         Returns:
           Config.
         """
-        return Config(**self.__dict__)
+        return Config(**self.to_dict())
 
     @classmethod
     def load(cls, file_path):

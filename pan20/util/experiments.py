@@ -118,7 +118,7 @@ def run(experiment, memory_limit):
         util.set_random_seed(seed)
 
         # init model and train
-        model = experiment.model(**experiment.cfg.model)
+        model = experiment.model_cls(**experiment.cfg.model)
         model = training.TrainableModel(model, experiment.cfg)
         model.train(train_loader, dev_loader)
 

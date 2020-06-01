@@ -36,13 +36,9 @@ def get_top_k(k, n):
             return json.loads(f.read())
     else:
         freqs = small_freqs(n)
-        sorted_freqs = reversed(sorted(freqs.values()))
-        cutoff = -1
-        taken = 1
-        while taken <= k:
-            cutoff = next(sorted_freqs)
-            taken += 1
-        topk = {w: f for w, f in freqs.items() if f >= cutoff}
+        sorted_freqs = sorted(freqs.items(), key=lambda x: x[1], reverse=True)
+        topk = sorted_freqs[0:k]
+        topk = {w: f for w, f in topk}
         with open(fp, 'w+') as f:
             f.write(json.dumps(topk))
         return topk
@@ -63,13 +59,15 @@ class Vectorizer:
         self.doc_ent = top_k_doc_ent(k, n)
         self.scaling = special.softmax(1 / self.doc_ent)
 
-    def __call__(self, toks, entropy_scaling=True):
+    def __call__(self, toks, entropy_scaling=True, expand_axis=None):
         """Vectorize a document.
 
         Args:
           toks: List of lists of tokens.
           entropy_scaling: Bool, whether to scale the frequencies by entropy
             over documents. Default is True.
+          expand_axis: Integer, axis along which to expand the vector. Default
+            is None. Must be in {0, 1}.
 
         Returns:
           numpy.array of shape (k,).
@@ -82,6 +80,8 @@ class Vectorizer:
         vec /= len(toks)
         if entropy_scaling:
             vec /= self.doc_ent
+        if expand_axis is not None:
+            vec = np.expand_dims(vec, axis=expand_axis)
         return vec
 
 

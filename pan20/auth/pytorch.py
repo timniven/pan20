@@ -1,7 +1,9 @@
 from torch.utils import data
+import numpy as np
 import torch
 
 from pan20 import auth
+from pan20.util import text, topkfreqs
 from pan20.util.pytorch import training
 
 

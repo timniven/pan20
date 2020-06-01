@@ -35,6 +35,12 @@ class IxDict:
     def __len__(self):
         return len(self.entities)
 
+    def keys(self, ent_to_ix=True):
+        if ent_to_ix:
+            return self.ent_to_ix.keys()
+        else:
+            return self.ix_to_ent.keys()
+
     def items(self, ix_to_ent=True):
         if ix_to_ent:
             return self.ix_to_ent.items()
@@ -95,7 +101,7 @@ def set_random_seed(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
     if torch.cuda.is_available():
-        torch.cuda.manual_seed_all()
+        torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 

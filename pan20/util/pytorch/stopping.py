@@ -39,6 +39,9 @@ class EarlyStopping:
     def __init__(self):
         pass
 
+    def __call__(self, train_state):
+        return self.stop(train_state)
+
     def stop(self, train_state):
         """Determine whether to stop.
 
@@ -58,7 +61,7 @@ class NoEarlyStopping(EarlyStopping):
         super().__init__()
 
     def stop(self, train_state):
-        return False
+        return False, None
 
 
 class NoDevImprovement(EarlyStopping):
@@ -83,5 +86,6 @@ class NoDevImprovement(EarlyStopping):
             k = mets[-self.k]  # baseline for checking improvement
             to_consider = mets[-self.k+1:]  # metrics to check
             # stop if all subsequent metrics are no better than the baseline
-            return all(not self.metric.is_better(x, k) for x in to_consider)
-        return False
+            stop = all(not self.metric.is_better(x, k) for x in to_consider)
+            return stop, 'Early stopping condition met.'
+        return False, ''

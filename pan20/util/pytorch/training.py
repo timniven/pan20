@@ -13,13 +13,12 @@ from . import anneal, metrics, opt, stopping
 class TrainConfig(config.Config):
     """Config class for common training settings."""
 
-    def __init__(self, n_epochs, seed, train_batch_size, p_drop, metric,
+    def __init__(self, n_epochs, seed, train_batch_size, metric,
                  tune_batch_size, run_no=1, memory_limit=None, no_cuda=False,
                  **kwargs):
         super().__init__(**kwargs)
         # NOTE: this is a target, but account for memory limit, so use property
         self._train_batch_size = train_batch_size
-        self.p_drop = p_drop
         self.no_cuda = no_cuda
         self.seed = seed
         self.run_no = run_no
@@ -48,6 +47,10 @@ class TrainConfig(config.Config):
             return self._memory_limit
         else:
             return max(self._train_batch_size, self._tune_batch_size)
+
+    @memory_limit.setter
+    def memory_limit(self, value):
+        self._memory_limit = value
 
     @property
     def train_batch_size(self):
@@ -173,7 +176,7 @@ class TrainableModel:
                     metric = self.train_state.cum_tr_metric \
                              / self.train_state.step
                     loss = self.train_state.cum_tr_loss \
-                           / self.train_state.n_tr_x
+                           / self.train_state.step
                     self.train_state.train_metrics.append({
                         'step': self.train_state.step,
                         self.metric.abbr: self.train_state.cum_tr_metric
@@ -181,8 +184,7 @@ class TrainableModel:
                     })
                     self.train_state.train_losses.append({
                         'step': self.train_state.step,
-                        'loss': self.train_state.cum_tr_loss
-                                / self.train_state.n_tr_x,
+                        'loss': loss,
                     })
                     iter_pbar.set_description(
                         '(J: %4.3f, M: %3.2f)' % (loss, metric))
@@ -213,7 +215,7 @@ class TrainableModel:
             epoch_pbar.update()
             epoch_pbar.set_description(
                 '(best: %5.2f)'
-                % self.cfg.metric.best(self.train_state.dev_metrics))
+                % self.metric.best(self.train_state.dev_metrics))
 
             # early stopping
             stop, message = self.stop(self.train_state)
