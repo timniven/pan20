@@ -2,11 +2,10 @@
 import json
 import random
 
-import numpy as np
-import torch
-
 import nltk
+import numpy as np
 from gensim.parsing import preprocessing
+import torch
 
 
 class IxDict:

@@ -5,6 +5,7 @@ import string
 
 import nltk
 from nltk.util import ngrams
+from nltk.tokenize import toktok
 from tqdm.notebook import tqdm
 
 
@@ -172,18 +173,25 @@ def normalize_netspeak(toks):
     return cleaned
 
 
-def tokenize(text, n=1):
+def tokenize(text, n=1, lang='en'):
     """Tokenize text into n-grams.
 
     Args:
       text: String.
       n: Int, order of n-grams.
     """
+    if lang == 'en':
+        tokenizer = nltk.word_tokenize
+    elif lang == 'es':
+        tokenizer = toktok.ToktokTokenizer().tokenize
+    else:
+        raise ValueError(lang)
+
     # pre-tokenization hooks
     text = pre_clean(text)
 
     # tokenization
-    toks = [t.strip() for t in nltk.word_tokenize(text)]
+    toks = [t.strip() for t in tokenizer(text)]
 
     # post-tokenization cleaning
     toks = post_clean(toks)
