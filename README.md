@@ -11,3 +11,9 @@ https://link.springer.com/article/10.1007/s41701-019-00065-w
 https://www.sciencedirect.com/science/article/pii/S187705091630151X
 https://webpages.uncc.edu/sshaikh2/pubs/C35.pdf
 
+
+	host: "betaweb055.medien.uni-weimar.de"
+	userPw: "ORBsSW2m"
+	portSsh: "44402"
+	userName: "niven20"
+	portRdp: "55502"
