@@ -10,6 +10,6 @@ if __name__ == '__main__':
     parser.add_argument('output_dir', type=str)
     args = parser.parse_args()
 
-    data = inputs.parse(args.file_path)
+    data = inputs.parse(args.file_path).iloc[0:500]
     preds = models.predict(data)
     outputs.save(preds, args.output_dir)
