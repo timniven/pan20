@@ -16,8 +16,8 @@ class PanDataset(Dataset):
 
     def __getitem__(self, idx):
 
-        text, label = self.data.iloc[idx, :].values
-        label_tensors = torch.tensor(label)
+        text = self.data.iloc[idx, :].values
+        #label_tensors = torch.tensor(label)
         word_pieces = ["[CLS]"]
         tokens = self.tokenizer.tokenize(text)
         word_pieces += tokens + ["[SEP]"]
@@ -25,7 +25,7 @@ class PanDataset(Dataset):
         ids = self.tokenizer.convert_tokens_to_ids(word_pieces)
         tokens_tensors = torch.tensor(ids)
 
-        return tokens_tensors, label_tensors
+        return tokens_tensors
 
 def collate_fn(batch):
 
