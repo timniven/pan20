@@ -3,7 +3,7 @@ import joblib
 import numpy as np
 import pandas as pd
 from sklearn import preprocessing
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 import xgboost as xgb
 
 from pan20.util import ctree, text
