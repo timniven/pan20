@@ -1,5 +1,3 @@
-
-
 import numpy as np
 import pandas as pd
 import torch
@@ -85,7 +83,8 @@ def run_bert(df, p_model):
     dataset = PanDataset(df_test, tokenizer)
     testloader = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=collate_fn)
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    #device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cpu')
     model = model.to(device)
     model.eval()
 
@@ -106,25 +105,8 @@ def run_bert(df, p_model):
             del masks_tensors
 
     return u_vectors
-    
-def get_vectors(u_vectors, mode):
-    '''Args:
-            u_vectors: encoded vectors by BERT
-            mode: 'sum' or 'avg', the way to process all grouped vectors
-       Return:
-            (encoded_vectors) processed vectors
-    '''
-    print("Start transforming vectors")
-    encoded_vectors = []
-    for i in range(0, 30000, 100):
-        if mode == 'sum':
-            encoded_vectors.append(np.sum(u_vectors[i:i+100], axis=0))
-        if mode == 'avg':
-            encoded_vectors.append(np.average(u_vectors[i:i+100], axis=0))
- 
-    return encoded_vectors
 
-def get_encoded_df(df, mode, p_model, classifier):
+def get_encoded(df, p_model, mode="avg"):
     '''Args:
             df: original dataframe of Pan profiling
             p_model: choice['bert-base', 'bert-large', 'roberta-base', 'roberta-large']
@@ -134,7 +116,15 @@ def get_encoded_df(df, mode, p_model, classifier):
             pandas.DataFrame where each row has `author`, and `prob` (i.e. probability that author is a spreader.)
     '''
     u_vectors = run_bert(df, p_model)
-    encoded = get_vectors(u_vectors, mode='avg')
+    print("Start transforming vectors")
+    encoded_vectors = []    
+    for i in range(0, len(df), 100):
+        if mode == 'sum':
+            encoded_vectors.append(np.sum(u_vectors[i:i+100], axis=0))
+        if mode == 'avg':
+            encoded_vectors.append(np.average(u_vectors[i:i+100], axis=0))
+    #encoded = get_hidden(u_vectors, mode)
+    '''
     preds = {
         'author': [],
         'label': []}
@@ -143,10 +133,13 @@ def get_encoded_df(df, mode, p_model, classifier):
         preds['label'].append(df.label[i])
     preds = pd.DataFrame(preds)
     
+    
     proba = cross_val_predict(classifier, encoded, preds['label'], cv=5, method='predict_proba')
     is_spreader = []
     for i in range(300):
         is_spreader.append(proba[i][1])
-    preds = preds.assign(probability=is_spreader)
+    #preds = preds.assign(probability=is_spreader)
     
-    return preds
+    return is_spreader
+    '''
+    return encoded_vectors
