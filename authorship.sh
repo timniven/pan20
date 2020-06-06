@@ -2,4 +2,4 @@
 
 source ~/anaconda3/etc/profile.d/conda.sh
 conda activate base
-python3 profiling.py $1 $2
+python3 authorship.py $1 $2
