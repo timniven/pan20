@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn import preprocessing
 from tqdm import tqdm
 import xgboost as xgb
+import run_pretrain
 
 from pan20.util import ctree, text
 from pan20.util.lexicons import noble, sentiwordnet, trust, tweet_anger
@@ -24,6 +25,8 @@ def predict(data):
     """
     # build features
     X, authors = get_features(data)
+    bert_features = run_pretrain.get_encoded(data, 'bert-large')
+    roberta_features = run_pretrain.get_encoded(data, 'roberta-base')
 
     # load saved models
     svc = joblib.load('pan20/fake/svc.model')
@@ -37,8 +40,8 @@ def predict(data):
     preds_svc = get_preds(svc, X)
     preds_rf = get_preds(rf, X)
     preds_nb = get_preds(nb, X)
-    preds_bert = get_preds(bert, X)
-    preds_roberta = get_preds(roberta, X)
+    preds_bert = get_preds(bert, bert_features)
+    preds_roberta = get_preds(roberta, roberta_features)
 
     # generate inputs to xgboost model
     to_txt(preds_svc=preds_svc, preds_rf=preds_rf, preds_nb=preds_nb,
