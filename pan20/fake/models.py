@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn import preprocessing
 from tqdm import tqdm
 import xgboost as xgb
-import run_pretrain
+from pan20.fake import run_pretrain
 
 from pan20.util import ctree, text
 from pan20.util.lexicons import noble, sentiwordnet, trust, tweet_anger
