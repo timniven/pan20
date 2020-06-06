@@ -203,6 +203,10 @@ def tokenize(text, n=1, lang='en'):
     return toks
 
 
+def simple_tokenize(text):
+    return [t.strip() for t in nltk.word_tokenize(text)]
+
+
 def toks_to_freqs(toks, n):
     freqs = collections.Counter()
     with tqdm(total=n) as pbar:
