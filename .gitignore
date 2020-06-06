@@ -1,5 +1,8 @@
 # Project Specific
-data/
+data/auth/
+data/fake/
+data/psql/
+data/sqlite/
 ckpts/
 tmp/
 pan20env/

@@ -3,7 +3,8 @@ import joblib
 import numpy as np
 import pandas as pd
 from sklearn import preprocessing
-from tqdm.notebook import tqdm
+from tqdm import tqdm
+import xgboost as xgb
 
 from pan20.util import ctree, text
 from pan20.util.lexicons import noble, sentiwordnet, trust, tweet_anger
@@ -28,7 +29,7 @@ def predict(data):
     svc = joblib.load('pan20/fake/svc.model')
     rf = joblib.load('pan20/fake/rf.model')
     nb = joblib.load('pan20/fake/nb.model')
-    # TODO: load xgb model
+    bst = joblib.load('pan20/fake/bst.model')
 
     # get model predictions
     preds_svc = get_preds(svc, X)
@@ -39,7 +40,15 @@ def predict(data):
     to_txt(preds_svc=preds_svc, preds_rf=preds_rf, preds_nb=preds_nb)
 
     # get predictions
+    dmatrix = xgb.DMatrix(xgb_in_path)
+    preds = bst.predict(dmatrix)
+    preds = [p > 0.5 for p in preds]
 
+    # form into expected dictionary and return
+    preds = [{'author': authors[i], 'pred': preds[i]}
+             for i in range(len(preds))]
+
+    return preds
 
 
 def get_features(df):

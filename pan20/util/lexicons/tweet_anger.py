@@ -54,7 +54,7 @@ joy_emoji = [
 
 class Lexicon(lexicons.LexicalCategoryDict):
 
-    def __init__(self, file_path='data/fake/lex2.json'):
+    def __init__(self, file_path='data/anger/lex2.json'):
         super().__init__()
         stems = json.loads(open(file_path).read())
         self.word_dict = {}

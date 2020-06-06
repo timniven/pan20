@@ -1,7 +1,7 @@
 """SentiWordNet."""
 
 
-file_path = '/home/hanshan/dev/lexicons/sentiwordnet/SentiWordNet_3.0.0.txt'
+file_path = 'data/sentiwordnet/SentiWordNet_3.0.0.txt'
 cols = ['POS', 'ID', 'PosScore', 'NegScore', 'SynsetTerms', 'Gloss']
 
 
