@@ -24,7 +24,7 @@ class Model:
         raise NotImplementedError
 
 
-class LexicalSVM:
+class LexicalSVM(Model):
 
     def __init__(self):
         pass
