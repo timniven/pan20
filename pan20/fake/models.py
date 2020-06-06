@@ -32,7 +32,7 @@ def predict(data):
     svc = joblib.load('pan20/fake/svc.model')
     rf = joblib.load('pan20/fake/rf.model')
     nb = joblib.load('pan20/fake/nb.model')
-    bert = joblib.load('pan20/fake/bert-large.model')
+    bert = joblib.load('pan20/fake/bert-large-sigmoid.model')
     roberta = joblib.load('pan20/fake/roberta-base.model')
     #bst = joblib.load('pan20/fake/bst.model')
     bst = joblib.load('pan20/fake/combined_bst.model')
