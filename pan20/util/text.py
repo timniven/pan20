@@ -203,8 +203,16 @@ def tokenize(text, n=1, lang='en'):
     return toks
 
 
-def simple_tokenize(text):
-    return [t.strip() for t in nltk.word_tokenize(text)]
+def simple_tokenize(text, n=1):
+    unigrams = [t.strip() for t in nltk.word_tokenize(text)]
+    if n == 1:
+        return unigrams
+    elif n == 2:
+        return to_bigrams(unigrams)
+    elif n == 3:
+        return to_trigrams(unigrams)
+    else:
+        raise ValueError(n)
 
 
 def toks_to_freqs(toks, n):

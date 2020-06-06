@@ -17,3 +17,6 @@ https://webpages.uncc.edu/sshaikh2/pubs/C35.pdf
 	portSsh: "44402"
 	userName: "niven20"
 	portRdp: "55502"
+
+
+ssh niven20@betaweb055.medien.uni-weimar.de -p 44402
