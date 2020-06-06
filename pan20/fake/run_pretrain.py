@@ -1,5 +1,4 @@
-from transformers import BertModel
-from transformers import BertTokenizer
+
 
 import numpy as np
 import pandas as pd
@@ -46,14 +45,41 @@ def collate_fn(batch):
     return tokens_tensors, masks_tensors, label_ids
 
 
-def run_bert(df):
+def run_bert(df, p_model):
     '''Args:
             df: original dataframe of Pan profiling
-            mode: 'sum' or 'avg', the way to process all grouped vectors
+            p_model: choice['bert-base', 'bert-large', 'roberta-base', 'roberta-large']
        Return:
             (u_vectors) encoded vectors by BERT
     '''
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+    if p_model=='bert-base':
+        from transformers import BertModel
+        from transformers import BertTokenizer
+        
+        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        model= BertModel.from_pretrained('bert-base-uncased')
+        
+    if p_model=='bert-large':
+        from transformers import BertModel
+        from transformers import BertTokenizer
+        
+        tokenizer = BertTokenizer.from_pretrained('bert-large-uncased')
+        model= BertModel.from_pretrained('bert-large-uncased')
+        
+    if p_model=='roberta-base':
+        from transformers import RobertaModel
+        from transformers import RobertaTokenizer
+
+        tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
+        model= RobertaModel.from_pretrained('roberta-base')
+        
+    if p_model=='roberta-large':
+        from transformers import RobertaModel
+        from transformers import RobertaTokenizer
+        
+        tokenizer = RobertaTokenizer.from_pretrained('roberta-large')
+        model= RobertaModel.from_pretrained('roberta-large')
+        
     df_test = df.drop('author', 1)
     dataset = PanDataset(df_test, tokenizer)
     testloader = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=collate_fn)
@@ -99,15 +125,16 @@ def get_vectors(u_vectors, mode):
  
     return encoded_vectors
 
-def get_encoded_df(df, mode, classifier):
+def get_encoded_df(df, mode, p_model, classifier):
     '''Args:
             df: original dataframe of Pan profiling
+            p_model: choice['bert-base', 'bert-large', 'roberta-base', 'roberta-large']
             mode: 'sum' or 'avg', the way to process all grouped vectors
             classifier: classification model
        Return:
             pandas.DataFrame where each row has `author`, and `prob` (i.e. probability that author is a spreader.)
     '''
-    u_vectors = run_bert(df)
+    u_vectors = run_bert(df, p_model)
     encoded = get_vectors(u_vectors, mode='avg')
     preds = {
         'author': [],
