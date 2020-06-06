@@ -34,7 +34,8 @@ def predict(data):
     nb = joblib.load('pan20/fake/nb.model')
     bert = joblib.load('pan20/fake/bert-large.model')
     roberta = joblib.load('pan20/fake/roberta-base.model')
-    bst = joblib.load('pan20/fake/bst.model')
+    #bst = joblib.load('pan20/fake/bst.model')
+    bst = joblib.load('pan20/fake/combined_bst.model')
 
     # get model predictions
     preds_svc = get_preds(svc, X)
