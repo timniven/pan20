@@ -1,5 +1,6 @@
 benepar==0.1.2
 emoji==0.5.4
+gensim==3.8.3
 joblib==0.14.1
 nltk==3.5
 scikit-learn==0.22.2.post1

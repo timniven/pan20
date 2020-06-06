@@ -5,7 +5,7 @@ import random
 import nltk
 import numpy as np
 from gensim.parsing import preprocessing
-import torch
+# import torch
 
 
 class IxDict:
@@ -98,11 +98,11 @@ def new_random_seed():
 def set_random_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    # torch.manual_seed(seed)
+    # if torch.cuda.is_available():
+    #     torch.cuda.manual_seed_all(seed)
+    # torch.backends.cudnn.deterministic = True
+    # torch.backends.cudnn.benchmark = False
 
 
 def tokenize(tweet, stem=False):
