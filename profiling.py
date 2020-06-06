@@ -6,12 +6,12 @@ from pan20.fake import inputs, models, outputs
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('file_path', type=str)
+    parser.add_argument('input_dir', type=str)
     parser.add_argument('output_dir', type=str)
     parser.add_argument('--subset', type=int, default=None)
     args = parser.parse_args()
 
-    data = inputs.parse(args.file_path)
+    data = inputs.parse(args.input_dir)
     if args.subset:
         data = data.iloc[0:args.subset]
     preds = models.predict(data)
