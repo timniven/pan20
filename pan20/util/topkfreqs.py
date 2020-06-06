@@ -30,7 +30,7 @@ def small_freqs(n):
 
 
 def get_top_k(k, n):
-    fp = f'tmp/small_top_{k}_{n}.json'
+    fp = f'pan20/auth/small_top_{k}_{n}.json'
     if os.path.exists(fp):
         with open(fp) as f:
             return json.loads(f.read())
@@ -106,7 +106,7 @@ def top_k_counts(k, n):
 
 
 def top_k_doc_ent(k, n):
-    fp = f'tmp/top_{k}_{n}_doc_ent.npy'
+    fp = f'pan20/auth/top_{k}_{n}_doc_ent.npy'
     if os.path.exists(fp):
         return np.load(fp)
     else:
