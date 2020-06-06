@@ -11,8 +11,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     data = inputs.parse(args.file_path)
-    feats = features.early_bird(data)
 
+    feats = features.early_bird(data)
     model = models.early_bird()
     preds = model.predict(feats.values)  # list of 0, 1 as long as len(data)
     preds = [{'author': data.iloc[i].author, 'pred': preds[i]}
