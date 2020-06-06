@@ -1,11 +1,12 @@
-import pickle
+import joblib
 
-from sklearn.naive_bayes import GaussianNB
+import numpy as np
+import pandas as pd
+from sklearn import preprocessing
+from tqdm.notebook import tqdm
 
-
-def early_bird():
-    with open('clf', 'rb') as f:
-        return pickle.loads(f.read())
+from pan20.util import ctree, text
+from pan20.util.lexicons import noble, sentiwordnet, trust, tweet_anger
 
 
 class Model:
@@ -24,7 +25,121 @@ class Model:
         raise NotImplementedError
 
 
-class LexicalSVM(Model):
+class LexicalModel(Model):
+
+    def __init__(self, clf):
+        self.clf = clf
+
+    def predict(self, df):
+        X, authors = self.get_features(df)
+        preds = self.get_preds(X)
+        preds = pd.DataFrame({
+            'author': authors,
+            'probability': preds
+        })
+        return preds
+
+    @staticmethod
+    def get_features(df):
+        print('Getting features...')
+        # tokenize
+        df['toks'] = df.tweet.apply(text.tokenize)
+
+        # noble: adverbs, impersonal_pronouns, personal_pronouns, function_words
+        # ctree: avg_bf, max_np_height, max_vp_height
+        # sentiwordnet: senti, senti_neg
+        # other lexical: anger, distrust
+        noble_dict = noble.NobleDict()
+        get_tree = ctree.GetTree()
+        swn = sentiwordnet.SentiWordNet()
+        anger_dict = tweet_anger.Lexicon()
+        distrust_dict = trust.Lexicon()
+
+        # do it all in one pass over the data
+        adverbs = []
+        impersonal_pronouns = []
+        personal_pronouns = []
+        function_words = []
+        avg_bf = []
+        max_np_height = []
+        max_vp_height = []
+        senti = []
+        senti_neg = []
+        anger = []
+        distrust = []
+
+        with tqdm(total=len(df)) as pbar:
+            for _, x in df.iterrows():
+                # noble
+                adverbs.append(noble_dict.freq(x.toks, 'adverbs'))
+                impersonal_pronouns.append(
+                    noble_dict.freq(x.toks, 'impersonal_pronouns'))
+                personal_pronouns.append(
+                    noble_dict.freq(x.toks, 'personal_pronouns'))
+                function_words.append(
+                    noble_dict.freq(x.toks, 'function_words'))
+
+                # ctree
+                tree = get_tree(x.tweet)
+                avg_bf.append(ctree.avg_branch_factor(tree))
+                max_np_height.append(ctree.max_const_height(tree, 'NP'))
+                max_vp_height.append(ctree.max_const_height(tree, 'VP'))
+
+                # sentiwordnet
+                senti.append(swn.score(x.toks))
+                senti_neg.append(swn.score_neg(x.toks))
+
+                # other lexical
+                anger.append(anger_dict.cat_freq(x.toks, 'anger'))
+                distrust.append(distrust_dict.cat_freq(x.toks, 'distrust'))
+
+                pbar.update()
+
+        df['adverbs'] = adverbs
+        df['impersonal_pronouns'] = impersonal_pronouns
+        df['personal_pronouns'] = personal_pronouns
+        df['function_words'] = function_words
+        df['avg_bf'] = avg_bf
+        df['max_np_height'] = max_np_height
+        df['max_vp_height'] = max_vp_height
+        df['senti'] = senti
+        df['senti_neg'] = senti_neg
+        df['anger'] = anger
+        df['distrust'] = distrust
+
+        # group by author
+        df.drop(columns=['tweet'], inplace=True)
+        feats = df.groupby('author').mean().reset_index()
+        authors = list(feats.author.values)
+        feats = feats.loc[:, [c != 'author' for c in feats.columns]]
+        X = feats.values
+
+        # normalize
+        scaler = preprocessing.MinMaxScaler()
+        X = scaler.fit_transform(X)
+
+        return X, authors
+
+    def get_preds(self, X):
+        return list(np.exp(self.clf.predict_log_proba(X))[:, 1])
+
+
+class LexicalSVM(LexicalModel):
 
     def __init__(self):
-        pass
+        clf = joblib.load('pan20/fake/svc.model')
+        super().__init__(clf=clf)
+
+
+class LexicalNB(LexicalModel):
+
+    def __init__(self):
+        clf = joblib.load('pan20/fake/nb.model')
+        super().__init__(clf=clf)
+
+
+class LexicalRF(LexicalModel):
+
+    def __init__(self):
+        clf = joblib.load('pan20/fake/rf.model')
+        super().__init__(clf=clf)

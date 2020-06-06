@@ -34,6 +34,11 @@ class NobleDict:
 
         self.word_set = set(self.word_dict.keys())
 
+        # add function word category
+        for word in self.word_dict:
+            self.word_dict[word].append('function_words')
+        self.cat_dict['function_words'] = list(self.word_set)
+
     def __call__(self, toks):
         n = len(toks)
         freqs = {cat: 0 for cat in cats}
@@ -59,6 +64,11 @@ class NobleDict:
         if word in self.word_dict:
             return self.word_dict[word]
         return []
+
+    def freq(self, words, cat):
+        n = len(words)
+        c = sum(1 for w in words if self.is_in(w, cat))
+        return c / n
 
     def is_in(self, word, cat):
         return word in self.cat_dict[cat]
