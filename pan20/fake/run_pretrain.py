@@ -52,6 +52,7 @@ def run_bert(df, p_model):
        Return:
             (u_vectors) encoded vectors by BERT
     '''
+    print("Loading {} model".format(p_model))
     if p_model=='bert-base':
         from transformers import BertModel
         from transformers import BertTokenizer
@@ -85,8 +86,6 @@ def run_bert(df, p_model):
     testloader = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=collate_fn)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print("Loading BERT uncased model")
-    model= BertModel.from_pretrained('bert-base-uncased')
     model = model.to(device)
     model.eval()
 
