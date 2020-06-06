@@ -5,7 +5,6 @@ import pandas as pd
 from sklearn import preprocessing
 from tqdm import tqdm
 import xgboost as xgb
-import run_pretrain
 
 from pan20.util import ctree, text
 from pan20.util.lexicons import noble, sentiwordnet, trust, tweet_anger
@@ -25,28 +24,20 @@ def predict(data):
     """
     # build features
     X, authors = get_features(data)
-    bert_features = run_pretrain.get_encoded(data, 'bert-large')
-    roberta_features = run_pretrain.get_encoded(data, 'roberta-base')
 
     # load saved models
     svc = joblib.load('pan20/fake/svc.model')
     rf = joblib.load('pan20/fake/rf.model')
     nb = joblib.load('pan20/fake/nb.model')
-    bert = joblib.load('pan20/fake/bert-large-sigmoid.model')
-    roberta = joblib.load('pan20/fake/roberta-base.model')
-    #bst = joblib.load('pan20/fake/bst.model')
-    bst = joblib.load('pan20/fake/combined_bst.model')
+    bst = joblib.load('pan20/fake/bst.model')
 
     # get model predictions
     preds_svc = get_preds(svc, X)
     preds_rf = get_preds(rf, X)
     preds_nb = get_preds(nb, X)
-    preds_bert = get_preds(bert, bert_features)
-    preds_roberta = get_preds(roberta, roberta_features)
 
     # generate inputs to xgboost model
-    to_txt(preds_svc=preds_svc, preds_rf=preds_rf, preds_nb=preds_nb,
-           preds_bert=preds_bert, preds_roberta=preds_roberta)
+    to_txt(preds_svc=preds_svc, preds_rf=preds_rf, preds_nb=preds_nb)
 
     # get predictions
     dmatrix = xgb.DMatrix(xgb_in_path)
@@ -145,10 +136,10 @@ def get_preds(clf, X):
     return list(np.exp(clf.predict_log_proba(X))[:, 1])
 
 
-def to_txt(preds_svc, preds_rf, preds_nb, preds_bert, preds_roberta):
+def to_txt(preds_svc, preds_rf, preds_nb):
     with open(xgb_in_path, 'w+') as f:
         for i in range(len(preds_svc)):
-            row = '0:%s 1:%s 2:%s\n' % (preds_svc[i], preds_rf[i], preds_nb[i], preds_bert[i], preds_roberta[i])
+            row = '0:%s 1:%s 2:%s\n' % (preds_svc[i], preds_rf[i], preds_nb[i])
             f.write(row)
 
 
