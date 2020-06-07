@@ -16,5 +16,5 @@ def save(preds, output_dir):
 
 
 def get_xml(pred):
-    return '<author id="%s"\n    lang="en"\n    type="%s"\n/>' \
-           % (pred['author'], pred['pred'])
+    return '<author id="%s" lang="en" type="%s"\n/>' \
+           % (pred['author'], int(pred['pred']))
