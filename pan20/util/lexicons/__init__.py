@@ -23,7 +23,9 @@ class LexicalCategoryDict:
 
     def cat_freq(self, doc, cat):
         n = len(doc)
-        count = sum(1 for word in doc if self.is_in(cat, word))
+        count = sum(1 for word in doc
+                    if self.is_in(cat, word)
+                    or self.is_in(cat, self.stemmer.stem(word)))
         return count / n
 
     def cat_freqs(self, doc):

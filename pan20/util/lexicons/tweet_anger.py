@@ -60,6 +60,7 @@ class Lexicon(lexicons.LexicalCategoryDict):
         self.word_dict = {}
         for s in stems:
             self.word_dict[s] = ['anger']
+        #self.cat_dict = {'anger': [w for w in list(stems.values())[0]]}
         self.cat_dict = {'anger': stems}
 
 
